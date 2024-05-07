@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Ranking</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <h1>Clasificar bandas musicales</h1> 
+  <p>Clasifique cada banda de 1 al 10:</p> 
+  <form id="ratings-form"> 
+    <div id="bands-container"></div>
+    <button type="submit">Procesar información</button>
+  </form>
+
+  <div id="ranking-container" style="display: none;"> 
+    <h2>Ranking:</h2> 
+    <p>Género de preferencia: <span id="favorite-genre"></span></p> 
+    <ol id="ranking-list"></ol>
+  </div>
+
+  <script>
+    // Datos de las bandas con estilos categorizados
+    const bands = [
+      { name: 'Nirvana', style: 'Grunge' },
+      { name: 'Nine Inch Nails', style: 'Industrial' },
+      { name: 'Backstreet Boys', style: 'Boy Band' },
+      { name: 'N Sync', style: 'Boy Band' },
+      { name: 'Night Club', style: 'Dance' },
+      { name: 'Apashe', style: 'Techno' },
+      { name: 'STP', style: 'Rock' },
+    ];
+
+    // Mostrar las bandas para clasificar
+    const bandsContainer = document.getElementById('bands-container');
+    bands.forEach(band => {
+      bandsContainer.innerHTML += `
+        <div>
+          <span>${band.name}</span>
+          <input type="text" name="${band.name.replace(/\s/g, '-')}">
+        </div>
+      `;
+    });
+
+    // Procesar las clasificaciones
+    document.getElementById('ratings-form').addEventListener('submit', function (event) {
+      event.preventDefault(); // Prevenir el comportamiento predeterminado del formulario
+
+      const userRatings = bands.map(band => { // Crear un array de objetos con las calificaciones de usuario
+        const ratingInput = document.querySelector(`input[name="${band.name.replace(/\s/g, '-')}"]`); // Seleccionar el campo de entrada correspondiente
+        return { name: band.name, style: band.style, rating: parseInt(ratingInput.value) }; // Crear un objeto con el nombre de la banda, el estilo y la calificación
+      });
+
+      // Verificar si las calificaciones están dentro del rango válido (1 al 10)
+      const validRatings = userRatings.every(rating => rating.rating >= 1 && rating.rating <= 10);
+      if (!validRatings) { // Si alguna calificación no está dentro del rango
+        alert("Por favor ingresa solo números del 1 al 10."); // Mostrar un mensaje de alerta al usuario
+        return; // Detener el proceso
+      }
+
+      // Calcular el género de preferencia
+      const genrePoints = {}; // Objeto para almacenar los puntos por género
+      userRatings.forEach(({ style, rating }) => { // Iterar sobre las calificaciones de usuario
+        genrePoints[style] = (genrePoints[style] || 0) + rating; // Sumar los puntos para cada género
+      });
+      const favoriteGenre = Object.keys(genrePoints).reduce((a, b) => genrePoints[a] > genrePoints[b] ? a : b); // Obtener el género con más puntos
+
+      // Ordenar las bandas por calificación de usuario
+      userRatings.sort((a, b) => b.rating - a.rating);
+
+      // Mostrar el ranking y el género de preferencia
+      const rankingContainer = document.getElementById('ranking-container'); // Obtener el contenedor del ranking
+      const rankingList = document.getElementById('ranking-list'); // Obtener la lista del ranking
+      rankingList.innerHTML = userRatings.map((band, index) => `<li>${index + 1}. ${band.name} - ${band.style} (${band.rating})</li>`).join(''); // Crear elementos de lista con el nombre de la banda, el estilo y la calificación
+      rankingContainer.style.display = 'block'; // Mostrar el contenedor del ranking
+
+      document.getElementById('favorite-genre').textContent = favoriteGenre; // Mostrar el género de preferencia
+    });
+  </script>
+</body>
+
+</html>
